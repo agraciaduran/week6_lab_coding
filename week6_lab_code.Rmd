@@ -1,0 +1,88 @@
+---
+title: "week6_lab_coding"
+author: "Andrea Gracia"
+date: "11/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Part 1: Attach packages
+
+In your .Rmd setup chunk, attach the following packages:
+Part 1: Attach packages
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+library(ggpubr)
+library(broom)
+```
+Part 2: A rank-based test example (Mann Whitney U)
+```{r}
+set.seed(1414)
+gp_1 <- sample.int(20, size=15, replace=TRUE)
+
+set.seed(1424)
+gp_2 <- sample.int(30, size=15, replace=TRUE)
+
+hist(gp_1)
+hist(gp_2)
+
+my_mwu <- wilcox.test(gp_1, gp_2)
+```
+
+Part 3: Simple linear regression
+```{r}
+ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point()
+```
+
+```{r}
+penguin_lm <- lm(body_mass_g ~ flipper_length_mm, data = penguins)
+summary(penguin_lm)
+penguin_lm_tidy <- broom::tidy(penguin_lm)
+
+# Get the intercept: 
+penguin_int <- penguin_lm_tidy$estimate[1]
+penguin_int
+
+# Then to get the flipper_length coefficient:
+penguin_coef <- penguin_lm_tidy$estimate[2]
+penguin_coef
+
+# Metrics at a glance: 
+penguin_lm_out <- broom::glance(penguin_lm)
+penguin_lm_out
+
+"Simple linear regression was used to explore the relationship between penguin flipper length (mm) and body mass (g) across all three penguin species, and including both male and female penguins. A significant regression model was found ($\beta$ = `r round(penguin_coef,3)`, F(`r penguin_lm_out$df`,`r penguin_lm_out$df.residual`) = `r round(penguin_lm_out$statistic,1)`, p < 0.001) with an R^2^ of `r round(penguin_lm_out$r.squared,3)`."
+```
+Use the plot() function on the model, which will automatically create four useful visualizations to consider assumptions!
+
+```{r}
+plot(penguin_lm)
+```
+
+Now that we’ve explore the assumptions and have decided that linear regression is a valid tool to describe the relationship between flipper length and body mass, let’s look at the model.
+
+Use geom_smooth(method = "lm") to add a linear model to an existing scatterplot
+
+Use stat_cor() and/or stat_regline_equation() to add equation information directly to the plot panel, at an x- and y-position that you specify (and yes, you can mess with the digits & appearance here)
+
+```{r}
+ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point(size = 2) +
+  geom_smooth(method = "lm",
+              color = "red",
+              size = 0.5,
+              fill = "gray10",
+              alpha = 0.5) +
+  theme_light() +
+  ggpubr::stat_regline_equation(label.x = 180, label.y = 5700)
+```
+Find Pearson’s r for correlation:
+```{r}
+penguins_cor <- cor.test(penguins$flipper_length_mm, penguins$body_mass_g)
+```
+
